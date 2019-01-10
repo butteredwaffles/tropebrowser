@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tropebrowser/scraper.dart';
 
 void main() => runApp(TropeBrowser());
 
@@ -45,22 +46,51 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  bool _loading = true;
+  String articleText = "";
+  ThemeData theme;
+
+
+  Widget buildWidget() {
+    if (_loading) {
+      return Stack(
+        children: [
+          Opacity(opacity: 0.3, child: const ModalBarrier(dismissible: false, color: Colors.grey)),
+          Center(child: CircularProgressIndicator()),
+          Text("Loading...", style: theme.textTheme.body1) // Theme will be set by the time this function gets run.
+        ]
+      );
+    }
+    else {
+      return Container(width: 0, height: 0);
+    }
+  }
+
+  Future _loadArticle() async {
+    String text = await getLink("https://tvtropes.org/pmwiki/pmwiki.php/Main/CameraAbuse");
+
+    setState(() {
+      _loading = false;
+      articleText = text;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    ThemeData theme = Theme.of(context);
+    theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Placeholder',
-              style: theme.textTheme.body1
+        child: ListView(
+          children: [
+            RaisedButton(
+              onPressed: _loadArticle,
+              child: Text("Load Test Article", style: theme.textTheme.body1)
             ),
-          ],
+            Text(articleText, style: theme.textTheme.body1)
+          ]
         ),
       ),
     );
