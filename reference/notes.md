@@ -27,7 +27,7 @@ Important to note that the page name ("Main") is the text of the `wrapper` span.
 `quoteright` is the head image, while `acaptionright` is the quote beneath it, oddly. Not every article has both, and some only have one or the other. 
 There is only maximum one each per article despite being in a class. When both exist, [this](https://github.com/flutter/flutter/issues/2022#issuecomment-376370973)
 solution will have to be used in order to get it to flow around the text like it does on the website. Of course, if that turns out not to be possible,
-we could just place them in two seperate `Row` widgets so they're in a line.
+we could just place them in a `Column` widget so they're in a line.
 ```
 <div class="quoteright" style="width:350px;">
   <a class="twikilink" href="/pmwiki/pmwiki.php/Manga/HaruhiChan" title="/pmwiki/pmwiki.php/Manga/HaruhiChan">
@@ -53,7 +53,7 @@ the text is italicised.
 ```
  
 ### Secondary Subpage Links
-Articles with many, many examples have their category pages. These appear to be in a regular `<strong>` tag, which may be problematic
+Articles with many, many examples have their own category pages. These appear to be in a regular `<strong>` tag, which may be problematic
 to deal with. How to deal with parsing the pages themselves is dealt with in the [Subpage](#Subpages) section.
 ```
 <strong>Examples with their own sub-page:</strong>
@@ -76,7 +76,7 @@ to deal with. How to deal with parsing the pages themselves is dealt with in the
 ### Folders
 The label is the `div` before the actual folder, which makes this a little obnoxious. The folder itself is a simple `div` with a `ul` inside.
 The `li`s' text in the `ul` can probably be parsed similarly to the body's `p` tags, although some special formatting will need to be done to
-show/hide the folders. Perhaps a ListView triggered by a button?
+show/hide the folders. We could use [GestureDetector](http://cogitas.net/implement-gesturedetector-flutter/) to insert a `ListView.builder` that creates the list items into the widget list.
 ```
 <div id="folder1" class="folder" isfolder="true" style="display:block;">
   <ul>
