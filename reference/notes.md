@@ -3,6 +3,8 @@
 Each element in the main article will probably have to be traversed individually in order to get all the links and such formatted correctly.
 The selector for this is `#main-article *`.
 
+The selector `.ad-unit` is the `div` that contains all the ads. This will have to be filtered.
+
 ## Main Pages
 
 ### Article Titles
@@ -11,7 +13,7 @@ There are other titles, but this is the only one that omits the ` - TV Tropes` a
 `<h1 itemprop="headline" class="entry-title">Camera Abuse</h1>`
 
 ### Subpage Links
-Parent selector is `.subpage_links`, which is a `ul` containing all these links. It also contains the "create links" list, so using `.subpage_link` is a better selector in order to avoid catching pages that don't actually exist.
+Parent selector is `.subpage-links`, which is a `ul` containing all these links. It also contains the "create links" list, so using `.subpage_link` is a better selector in order to avoid catching pages that don't actually exist.
 Important to note that the page name ("Main") is the text of the `wrapper` span. The `spi` span is empty.
 ```
 <li>
@@ -19,12 +21,12 @@ Important to note that the page name ("Main") is the text of the `wrapper` span.
     <span class="wrapper">
       <span class="spi main-page"></span>Main
     </span>
-	</a>
+  </a>
 </li>
 ```
 
 ### Article Images
-`quoteright` is the head image, while `acaptionright` is the quote beneath it, oddly. Not every article has both, and some only have one or the other. 
+`quoteright` is the head image, while `acaptionright` is the quote beneath it, oddly. Not every article has both, and some only have one or the other.
 There is only maximum one each per article despite being in a class. When both exist, [this](https://github.com/flutter/flutter/issues/2022#issuecomment-376370973)
 solution will have to be used in order to get it to flow around the text like it does on the website. Of course, if that turns out not to be possible,
 we could just place them in a `Column` widget so they're in a line.
@@ -34,7 +36,7 @@ we could just place them in a `Column` widget so they're in a line.
     <img src="https://static.tvtropes.org/pmwiki/pub/images/haruhi_camera_abuse.jpg" class="embeddedimage" border="0" alt="https://static.tvtropes.org/pmwiki/pub/images/haruhi_camera_abuse.jpg">
   </a>
 </div>
-<div class="acaptionright" style="width:350px;">Ouch, now 
+<div class="acaptionright" style="width:350px;">Ouch, now
     <a class="twikilink" href="/pmwiki/pmwiki.php/Main/ThatsGottaHurt" title="/pmwiki/pmwiki.php/Main/ThatsGottaHurt">That's Gotta Hurt</a>.
 </div>
 ```
@@ -51,7 +53,7 @@ the text is italicised.
 </p>
 <p>How does one show that the on-screen action is getting out of control? By having it hit the camera! The entire screen will <a class="twikilink" href="/pmwiki/pmwiki.php/Main/JitterCam" title="/pmwiki/pmwiki.php/Main/JitterCam">shake</a>, or be obscured by gunk or debris. If the impact is really bad, it will crack the lens or even break the camera, treating the audience to a screenful of static.</p>
 ```
- 
+
 ### Secondary Subpage Links
 Articles with many, many examples have their own category pages. These appear to be in a regular `<strong>` tag, which may be problematic
 to deal with. How to deal with parsing the pages themselves is dealt with in the [Subpage](#Subpages) section.
@@ -60,16 +62,16 @@ to deal with. How to deal with parsing the pages themselves is dealt with in the
 <ul>
   <li>
     <a class="twikilink" href="/pmwiki/pmwiki.php/CameraAbuse/Film" title="/pmwiki/pmwiki.php/CameraAbuse/Film">Film</a>
-	</li>
-	<li>
-		<a class="twikilink" href="/pmwiki/pmwiki.php/CameraAbuse/LiveActionTV" title="/pmwiki/pmwiki.php/CameraAbuse/LiveActionTV">Live-Action TV</a>
-	</li>
-	<li>
-		<a class="twikilink" href="/pmwiki/pmwiki.php/CameraAbuse/VideoGames" title="/pmwiki/pmwiki.php/CameraAbuse/VideoGames">Video Games</a>
-	</li>
-	<li>
-		<a class="twikilink" href="/pmwiki/pmwiki.php/CameraAbuse/WesternAnimation" title="/pmwiki/pmwiki.php/CameraAbuse/WesternAnimation">Western Animation</a>
-	</li>
+  </li>
+  <li>
+    <a class="twikilink" href="/pmwiki/pmwiki.php/CameraAbuse/LiveActionTV" title="/pmwiki/pmwiki.php/CameraAbuse/LiveActionTV">Live-Action TV</a>
+  </li>
+  <li>
+    <a class="twikilink" href="/pmwiki/pmwiki.php/CameraAbuse/VideoGames" title="/pmwiki/pmwiki.php/CameraAbuse/VideoGames">Video Games</a>
+  </li>
+  <li>
+    <a class="twikilink" href="/pmwiki/pmwiki.php/CameraAbuse/WesternAnimation" title="/pmwiki/pmwiki.php/CameraAbuse/WesternAnimation">Western Animation</a>
+  </li>
 </ul>
 ```
 
@@ -96,3 +98,21 @@ widget that will allow us to do this without a button.
 
 
 ## Subpages
+Ignore the `.subpage-links` on subpages. These lead to the broad topic rather than referring to the
+original article.
+
+`#main-article` holds all the information, just like it does for main pages.
+Category headers are classless `h2` tags. Following them are untagged `ul`s,
+with `li`s that can be filtered through the same measure as all other `li`s.
+
+```
+<h2>Films - Animated</h2>
+<ul>
+    <li>Disney's
+      <em>
+        <a class="twikilink" href="/pmwiki/pmwiki.php/Disney/Aladdin" title="/pmwiki/pmwiki.php/Disney/Aladdin">Aladdin</a>
+      </em>: The narrator in the prologue entreats the audience "Please, please, come closer!" Then the camera zooms right up to his face, and he mutters "Too close, a little too close!"
+    </li>
+    ...
+</ul>
+```
