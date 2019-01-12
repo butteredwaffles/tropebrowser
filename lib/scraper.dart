@@ -116,7 +116,7 @@ class TVTrope {
   }
 
   Widget getBodyParagraphWidget(dom.Document document) {
-    var paragraphs = document.querySelectorAll("#main-article p").skip(1);
+    var paragraphs = document.querySelectorAll("#main-article p, #main-article p+*:not(div):not(hr)").where((e) => e.text.replaceAll(RegExp(r"\s"), "") != "");
     List<TextSpan> bodyWidgets = [];
 
     for (dom.Element paragraph in paragraphs) {
@@ -126,7 +126,7 @@ class TVTrope {
           if (node.children.length > 0 && node.children[0].localName == "a") {
             bodyWidgets.add(handleTwikiLinks(
                 node.text,
-                BASE + node.children[0].attributes["href"],
+                node.children[0].attributes["href"],
                 italicize: true
             ));
           }
@@ -134,22 +134,38 @@ class TVTrope {
             bodyWidgets.add(TextSpan(text: node.text, style: theme.textTheme.body1.copyWith(fontStyle: FontStyle.italic)));
           }
         }
+        // Handle lists, which sometime appear in article bodies
+        else if (node.toString().contains("<html li>")) {
+          bodyWidgets.add(TextSpan(text: "\t• ${node.text}\n", style: theme.textTheme.body1));
+        }
+        // Handle links
         else if (node.attributes.containsKey("href")) {
           bodyWidgets.add(handleTwikiLinks(
               node.text,
-              BASE + node.attributes["href"],
+              node.attributes["href"],
               italicize: false
           ));
         }
+        // Handle text nodes
         else {
           bodyWidgets.add(TextSpan(text: node.text, style: theme.textTheme.body1));
         }
 
-        if (node == paragraph.nodes[paragraph.nodes.length - 1]) {
+        // Add an extra space once everything else is done
+        if (node.hashCode == paragraph.nodes[paragraph.nodes.length - 1].hashCode) {
           bodyWidgets.add(TextSpan(text: '\n'));
         }
       }
     }
+
+    List<dom.Element> externalSubpages = document.querySelectorAll("#main-article > ul > li > a");
+    if (externalSubpages.length > 0 ) {
+      //bodyWidgets.add(TextSpan(text: 'Examples: \n', style: theme.textTheme.body1.copyWith(fontWeight: FontWeight.bold)));
+      for (var item in externalSubpages) {
+        bodyWidgets.add(handleTwikiLinks("\t• ${item.text}\n", item.attributes["href"]));
+      }
+    }
+
     return Container(
       padding: EdgeInsets.all(15.0),
       child: RichText(
@@ -164,7 +180,7 @@ class TVTrope {
     return TextSpan(
       text: text,
       style: theme.textTheme.body1.copyWith(color: Colors.blue, fontStyle: (italicize ? FontStyle.italic : FontStyle.normal)),
-      recognizer: TapGestureRecognizer()..onTap = () => openNewPage(url)
+      recognizer: TapGestureRecognizer()..onTap = () => openNewPage((url.contains(BASE) ? url : BASE + url)) // Cover my own behind
     );
   }
 }
