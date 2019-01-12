@@ -28,6 +28,7 @@ class TropeBrowser extends StatelessWidget {
       headline: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold, color: lightColors["darkblue"]),
       title: TextStyle(fontSize: 50.0, fontStyle: FontStyle.italic, color: lightColors["darkblue"]),
       body1: TextStyle(fontSize: 16.0, color: lightColors["darkblue"]),
+      caption: TextStyle(fontSize: 14.0, color: lightColors["darkblue"], fontStyle: FontStyle.italic)
     )
   );
 
