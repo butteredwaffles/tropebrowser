@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart'; // Contains a client for making API calls
 import 'package:html/parser.dart'
@@ -11,11 +12,14 @@ const String BASE = "https://tvtropes.org";
 class TVTrope {
   String url = "";
   ThemeData theme;
-  Map<dom.Element, String> _tropeLinks = Map<dom.Element, String>();
 
   TVTrope(String uri, ThemeData them) {
     url = uri;
     theme = them;
+  }
+
+  Future openNewPage(String url) async {
+    // TODO: Open new trope page on twikilink open
   }
 
   Future<List<Widget>> getPage() async {
@@ -25,20 +29,16 @@ class TVTrope {
         .querySelector(".entry-title")
         .text; // Title must be accessed separate from the document
     List<Widget> widgets = [
-      Text(title, style: theme.textTheme.title),
+      Center(child: Text(title, style: theme.textTheme.title)),
       getSubpageWidget(document),
-      getArticleImageWidget(document)
+      getArticleImageWidget(document),
+      getBodyParagraphWidget(document),
     ];
-
-
-    //var article = document.querySelector("#main-article");
-    //List<dom.Element> allArticleElements = article.querySelectorAll("*");
 
     return widgets;
   }
 
   DropdownMenuItem<String> _parseInnerSubpageLink(dom.Element element) {
-    _tropeLinks[element] = BASE + element.attributes["href"];
     String text = element
         .querySelector(".wrapper")
         .text;
@@ -65,7 +65,6 @@ class TVTrope {
             children: [subdropdown],
             mainAxisSize: MainAxisSize.min
         ),
-        height: 48,
         width: 100
     );
   }
@@ -75,19 +74,20 @@ class TVTrope {
     dom.Element caption = document.querySelector(".acaptionright");
     // TODO: Add support for twikilinks in caption.
     List<Widget> colchildren;
+    double width = 300;
 
     if (image != null && caption != null) {
       colchildren = [
         Image.network(image
             .querySelector("img")
-            .attributes['src'], width: 190),
+            .attributes['src'], width: width),
         Text(caption.text, style: theme.textTheme.caption)
       ];
     }
     else if (image != null) {
       colchildren = [Image.network(image
           .querySelector("img")
-          .attributes['src'], width: 190)
+          .attributes['src'], width: width)
       ];
     }
     else if (caption != null) {
@@ -98,7 +98,7 @@ class TVTrope {
     }
 
     return Align(
-      alignment: Alignment.topRight,
+      alignment: Alignment.topCenter,
       child: Container(
         padding: EdgeInsets.all(10.0),
         margin: EdgeInsets.all(15.0),
@@ -112,6 +112,59 @@ class TVTrope {
             children: colchildren
         ),
       ),
+    );
+  }
+
+  Widget getBodyParagraphWidget(dom.Document document) {
+    var paragraphs = document.querySelectorAll("#main-article p").skip(1);
+    List<TextSpan> bodyWidgets = [];
+
+    for (dom.Element paragraph in paragraphs) {
+      for (var node in paragraph.nodes) {
+        // For italicized words
+        if (node.toString().contains("<html em>")) {
+          if (node.children.length > 0 && node.children[0].localName == "a") {
+            bodyWidgets.add(handleTwikiLinks(
+                node.text,
+                BASE + node.children[0].attributes["href"],
+                italicize: true
+            ));
+          }
+          else {
+            bodyWidgets.add(TextSpan(text: node.text, style: theme.textTheme.body1.copyWith(fontStyle: FontStyle.italic)));
+          }
+        }
+        else if (node.attributes.containsKey("href")) {
+          bodyWidgets.add(handleTwikiLinks(
+              node.text,
+              BASE + node.attributes["href"],
+              italicize: false
+          ));
+        }
+        else {
+          bodyWidgets.add(TextSpan(text: node.text, style: theme.textTheme.body1));
+        }
+
+        if (node == paragraph.nodes[paragraph.nodes.length - 1]) {
+          bodyWidgets.add(TextSpan(text: '\n'));
+        }
+      }
+    }
+    return Container(
+      padding: EdgeInsets.all(15.0),
+      child: RichText(
+        text: TextSpan(
+          children: bodyWidgets
+        )
+      )
+    );
+  }
+
+  TextSpan handleTwikiLinks(String text, String url, {bool italicize = false}) {
+    return TextSpan(
+      text: text,
+      style: theme.textTheme.body1.copyWith(color: Colors.blue, fontStyle: (italicize ? FontStyle.italic : FontStyle.normal)),
+      recognizer: TapGestureRecognizer()..onTap = () => openNewPage(url)
     );
   }
 }
