@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:tropebrowser/scraper.dart';
 
+// Reference URL: https://tvtropes.org/pmwiki/pmwiki.php/Main/CameraAbuse
+const String RANDOM_URL = "https://tvtropes.org/pmwiki/randomitem.php?p=1";
+
 void main() => runApp(TropeBrowser());
+
 
 Map<String, Color> lightColors = {
   "white": Color(0xffffffff),
@@ -13,7 +17,7 @@ Map<String, Color> lightColors = {
 
 
 class TropeBrowser extends StatelessWidget {
-  ThemeData lightTheme = ThemeData(
+  final ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
     primaryColor: lightColors["lightblue"],
     accentColor: lightColors["blue"],
@@ -47,17 +51,27 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   bool _loading = true;
-  String articleText = "";
+  List<Widget> articleData;
   ThemeData theme;
+
+  @override
+  void initState() {
+    _loadArticle().then((_) => {});
+  }
 
 
   Widget buildWidget() {
     if (_loading) {
       return Stack(
         children: [
-          Opacity(opacity: 0.3, child: const ModalBarrier(dismissible: false, color: Colors.grey)),
-          Center(child: CircularProgressIndicator()),
-          Text("Loading...", style: theme.textTheme.body1) // Theme will be set by the time this function gets run.
+          Opacity(opacity: 0.7, child: const ModalBarrier(dismissible: false, color: Colors.black)),
+          Center(child: SizedBox(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+            width: 75,
+            height: 75)
+          ),
         ]
       );
     }
@@ -67,30 +81,33 @@ class _MainPageState extends State<MainPage> {
   }
 
   Future _loadArticle() async {
-    String text = await getLink("https://tvtropes.org/pmwiki/pmwiki.php/Main/CameraAbuse");
+    while (theme == null) {
+      await Future.delayed(Duration(seconds: 1));
+    }
+    List<Widget> data = await TVTrope("https://tvtropes.org/pmwiki/pmwiki.php/Main/CameraAbuse", theme).getPage();
 
     setState(() {
       _loading = false;
-      articleText = text;
+      articleData = data;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     theme = Theme.of(context);
+
+    List<Widget> children = [Container(child: buildWidget(), height: MediaQuery.of(context).size.height)];
+
+    articleData == null ? Container(width: 0, height: 0) : children = articleData;
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
       body: Center(
         child: ListView(
-          children: [
-            RaisedButton(
-              onPressed: _loadArticle,
-              child: Text("Load Test Article", style: theme.textTheme.body1)
-            ),
-            Text(articleText, style: theme.textTheme.body1)
-          ]
+          children: children,
         ),
       ),
     );
