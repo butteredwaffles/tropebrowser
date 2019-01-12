@@ -26,11 +26,28 @@ class TVTrope {
         .text; // Title must be accessed separate from the document
     List<Widget> widgets = [
       Text(title, style: theme.textTheme.title),
+      getSubpageWidget(document),
     ];
 
+
+    //var article = document.querySelector("#main-article");
+    //List<dom.Element> allArticleElements = article.querySelectorAll("*");
+
+    return widgets;
+  }
+
+  DropdownMenuItem<String> _parseInnerSubpageLink(dom.Element element) {
+    _tropeLinks[element] = BASE + element.attributes["href"];
+    String text = element.querySelector(".wrapper").text;
+    print(text);
+    return DropdownMenuItem<String>(
+        value: text, child: Text(text, style: theme.textTheme.body1));
+  }
+
+  Widget getSubpageWidget(dom.Document document) {
     var subpageitems = List<DropdownMenuItem<String>>();
     for (var element in document.querySelectorAll(".subpage-link")) {
-      subpageitems.add(parseInnerSubpageLink(element));
+      subpageitems.add(_parseInnerSubpageLink(element));
     }
 
     var subdropdown = DropdownButton<String>(
@@ -39,21 +56,14 @@ class TVTrope {
       onChanged: (_) {}, // TODO: Switch to the article link once changed.
       isDense: false,
     );
-    widgets.add(Container(
-        child: Column(children: [subdropdown], mainAxisSize: MainAxisSize.min),
-        height: 48,
-        width: 100));
-    //var article = document.querySelector("#main-article");
-    //List<dom.Element> allArticleElements = article.querySelectorAll("*");
 
-    return widgets;
-  }
-
-  DropdownMenuItem<String> parseInnerSubpageLink(dom.Element element) {
-    _tropeLinks[element] = BASE + element.attributes["href"];
-    String text = element.querySelector(".wrapper").text;
-    print(text);
-    return DropdownMenuItem<String>(
-        value: text, child: Text(text, style: theme.textTheme.body1));
+    return Container(
+      child: Column(
+        children: [subdropdown],
+        mainAxisSize: MainAxisSize.min
+      ),
+      height: 48,
+      width: 100
+    );
   }
 }
