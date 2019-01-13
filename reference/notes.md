@@ -43,8 +43,7 @@ we could just place them in a `Column` widget so they're in a line.
 
 ### Body
 Nothing special about these tags. They are just `p` tags underneath the `#main-article` tag. No class or anything.
-They do, of course, have a lot of inner links that will have to be formatted. `<em>` tags will have to be handled as well in order to ensure
-the text is italicised.
+They do, of course, have a lot of inner links that will have to be formatted. 
 ```
 <p>
   <em>
@@ -75,6 +74,24 @@ to deal with. How to deal with parsing the pages themselves is dealt with in the
 </ul>
 ```
 
+## Special Tags
+Trope lists and body paragraphs can contain `em` tags, `strong` tags, and of course, links. Each node traversed in this application will have to be tested for these. There is a class `indent` that will use two `\t` characters to emulate.
+
+`document.querySelectorAll("#main-article p, #main-article p+*:not(div):not(hr), #main-article > .indent")`
+
+```
+<div class="indent">
+  <em>"Sorry, baby! Why you make me do that?"</em>
+  <div class="indent">
+    &mdash;Description of the "Double Slap" weapon from 
+    <em>
+      <a class="twikilink" href="/pmwiki/pmwiki.php/VideoGame/Disgaea2CursedMemories" title="/pmwiki/pmwiki.php/VideoGame/Disgaea2CursedMemories">Disgaea 2: Cursed Memories</a>
+    </em>
+  </div>
+</div>
+```
+
+
 ### Folders
 The label is the `div` before the actual folder, which makes this a little obnoxious. The folder itself is a simple `div` with a `ul` inside.
 The `li`s' text in the `ul` can probably be parsed similarly to the body's `p` tags, although some special formatting will need to be done to
@@ -98,11 +115,8 @@ widget that will allow us to do this without a button.
 
 
 ## Subpages
-Ignore the `.subpage-links` on subpages. These lead to the broad topic rather than referring to the
-original article.
-
 `#main-article` holds all the information, just like it does for main pages.
-Category headers are classless `h2` tags. Following them are untagged `ul`s,
+Category headers are classless `h2` tags, although they are occasionally omitted. Following them are untagged `ul`s,
 with `li`s that can be filtered through the same measure as all other `li`s.
 
 ```
@@ -116,3 +130,4 @@ with `li`s that can be filtered through the same measure as all other `li`s.
     ...
 </ul>
 ```
+
