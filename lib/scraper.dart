@@ -9,25 +9,34 @@ as dom; // Contains DOM related classes for extracting data from elements
 Client client = Client();
 const String BASE = "https://tvtropes.org";
 
-class TVTrope {
-  String url = "";
+
+class TVTropeWidget extends StatefulWidget {
+
+  TVTropeWidget({Key key, this.url}): super(key: key);
+  final String url;
+
+  @override
+  TVTrope createState() => TVTrope();
+}
+
+class TVTrope extends State<TVTropeWidget>{
+  bool _loading = true;
+  List<Widget> articleData;
+  String articleTitle;
   ThemeData theme;
 
-  TVTrope(String uri, ThemeData them) {
-    url = uri;
-    theme = them;
-  }
 
   Future openNewPage(String url) async {
     // TODO: Open new trope page on twikilink open
   }
 
   Future<List<Widget>> getPage() async {
-    Response response = await client.get(url);
+    Response response = await client.get(widget.url);
     var document = parser.parse(response.body);
     String title = document
         .querySelector(".entry-title")
         .text; // Title must be accessed separate from the document
+    articleTitle = title;
     List<Widget> widgets = [
       Center(child: Text(title, style: theme.textTheme.title)),
       getSubpageWidget(document),
@@ -181,6 +190,63 @@ class TVTrope {
       text: text,
       style: theme.textTheme.body1.copyWith(color: Colors.blue, fontStyle: (italicize ? FontStyle.italic : FontStyle.normal)),
       recognizer: TapGestureRecognizer()..onTap = () => openNewPage((url.contains(BASE) ? url : BASE + url)) // Cover my own behind
+    );
+  }
+
+
+  @override
+  void initState() {
+    _loadArticle().then((_) => {});
+  }
+
+
+  Widget buildWidget() {
+    if (_loading) {
+      return Stack(
+          children: [
+            Opacity(opacity: 0.7, child: const ModalBarrier(dismissible: false, color: Colors.black)),
+            Center(child: SizedBox(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+                width: 75,
+                height: 75)
+            ),
+          ]
+      );
+    }
+    else {
+      return Container(width: 0, height: 0);
+    }
+  }
+
+  Future _loadArticle() async {
+    while (theme == null) {
+      await Future.delayed(Duration(seconds: 1));
+    }
+    List<Widget> data = await getPage();
+
+    setState(() {
+      _loading = false;
+      articleData = data;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    theme = Theme.of(context);
+    List<Widget> children = [Container(child: buildWidget(), height: MediaQuery.of(context).size.height)];
+    articleData == null ? Container(width: 0, height: 0) : children = articleData;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(articleTitle == null ? "" : articleTitle),
+      ),
+      body: Center(
+        child: ListView(
+          children: children,
+        ),
+      ),
     );
   }
 }

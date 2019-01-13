@@ -51,66 +51,40 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  bool _loading = true;
-  List<Widget> articleData;
-  ThemeData theme;
-
-  @override
-  void initState() {
-    _loadArticle().then((_) => {});
-  }
-
-
-  Widget buildWidget() {
-    if (_loading) {
-      return Stack(
-        children: [
-          Opacity(opacity: 0.7, child: const ModalBarrier(dismissible: false, color: Colors.black)),
-          Center(child: SizedBox(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-            width: 75,
-            height: 75)
-          ),
-        ]
-      );
-    }
-    else {
-      return Container(width: 0, height: 0);
-    }
-  }
-
-  Future _loadArticle() async {
-    while (theme == null) {
-      await Future.delayed(Duration(seconds: 1));
-    }
-    List<Widget> data = await TVTrope("https://tvtropes.org/pmwiki/pmwiki.php/Main/CameraAbuse", theme).getPage();
-
-    setState(() {
-      _loading = false;
-      articleData = data;
-    });
-  }
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String _url = "";
 
   @override
   Widget build(BuildContext context) {
-    theme = Theme.of(context);
-
-    List<Widget> children = [Container(child: buildWidget(), height: MediaQuery.of(context).size.height)];
-
-    articleData == null ? Container(width: 0, height: 0) : children = articleData;
-
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text("Trope Browser")
       ),
       body: Center(
-        child: ListView(
-          children: children,
-        ),
-      ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                decoration: InputDecoration(
+                  hintText: "Enter in a trope URL"
+                ),
+                onSaved: (v) => _url = v,
+              ),
+              RaisedButton(
+                child: Text("Open Trope"),
+                onPressed: () {
+                  if (_formKey.currentState.validate()) {
+                    _formKey.currentState.save();
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => TVTropeWidget(url: _url)));
+                  }
+                },
+              )
+            ]
+          )
+        )
+      )
     );
   }
+
 }
