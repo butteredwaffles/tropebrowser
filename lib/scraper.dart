@@ -48,7 +48,7 @@ class TVTrope extends State<TVTropeWidget> {
   DropdownMenuItem<String> _parseInnerSubpageLink(dom.Element element) {
     String text = element.querySelector(".wrapper").text;
     return DropdownMenuItem<String>(
-        value: text, child: Text(text, style: theme.textTheme.body1));
+        value: element.attributes["href"], child: Text(text, style: theme.textTheme.body1));
   }
 
   Widget getSubpageWidget(dom.Document document) {
@@ -129,21 +129,38 @@ class TVTrope extends State<TVTropeWidget> {
   Widget getBodyParagraphWidget(dom.Document document) {
     var paragraphs = document
         .querySelectorAll(
-            '#main-article p, #main-article p+*:not(.proper-ad-unit):not(hr), #main-article > .indent, .folderlabel')
+            '#main-article p, #main-article p+*:not(.proper-ad-unit):not(hr), #main-article > .indent, .folderlabel, #main-article h2')
         .where((e) => e.text.replaceAll(RegExp(r"\s"), "") != "");
     List<TextSpan> bodyWidgets = [];
     List<Widget> folderWidgets = [];
+    RichText h2data = RichText(text: TextSpan(children: []));
+    bool h2Trope = false;
 
     for (dom.Element paragraph in paragraphs) {
       if (paragraph.classes.any((str) => str == "folderlabel") && !paragraph.text.contains("all folders")) {
         folderWidgets.add(handleFolders(paragraph));
       }
+      else if (paragraph.localName == "h2" && (paragraph.nextElementSibling.localName == "ul" || paragraph.nextElementSibling.localName == "ol")) {
+        List<TextSpan> spans = new List<TextSpan>();
+        spans.add(TextSpan(text: paragraph.text.trim()));
+        spans.addAll(handleLiTags(paragraph.nextElementSibling));
+
+        h2data = RichText(
+          text: TextSpan(
+            children: spans
+          )
+        );
+        h2Trope = true;
+      }
       else {
-        for (var node in paragraph.nodes) {
-          bodyWidgets.addAll(handleNodes(node, paragraph.nodes[paragraph.nodes.length - 1].hashCode));
+        if (!h2Trope) {
+          for (var node in paragraph.nodes) {
+            var n = handleNodes(
+                node, paragraph.nodes[paragraph.nodes.length - 1].hashCode);
+            bodyWidgets.addAll(n);
+          }
         }
       }
-
     }
 
     List<dom.Element> externalSubpages =
@@ -160,6 +177,7 @@ class TVTrope extends State<TVTropeWidget> {
       RichText(text: TextSpan(children: bodyWidgets))
     ];
     widgets.addAll(folderWidgets);
+    widgets.add(h2data);
 
     return Container(
         margin: EdgeInsets.all(5.0),
@@ -170,15 +188,8 @@ class TVTrope extends State<TVTropeWidget> {
     );
   }
 
-  Widget handleFolders(dom.Element folder) {
-    String text = folder.text.trim();
-    if (!folderVisibility.containsKey(text)) {
-      folderVisibility[text] = false;
-    }
-
-
-    List<TextSpan> items = new List<TextSpan>();
-    var selector = folder.nextElementSibling.attributes["isfolder"] != null ? folder.nextElementSibling : folder.nextElementSibling.nextElementSibling;
+  List<TextSpan> handleLiTags(dom.Element selector) {
+    List<TextSpan> items = [];
     for (var item in selector.querySelectorAll("li")) {
       items.add(TextSpan(text: "\t•", style: theme.textTheme.body1));
       for (var node in item.nodes) {
@@ -186,6 +197,18 @@ class TVTrope extends State<TVTropeWidget> {
       }
       items.add(TextSpan(text: "\n", style: theme.textTheme.body1));
     }
+    return items;
+  }
+
+  Widget handleFolders(dom.Element folder) {
+    String text = folder.text.trim();
+    if (!folderVisibility.containsKey(text)) {
+      folderVisibility[text] = false;
+    }
+
+    List<TextSpan> items = new List<TextSpan>();
+    var selector = folder.nextElementSibling.attributes["isfolder"] != null ? folder.nextElementSibling : folder.nextElementSibling.nextElementSibling;
+    items.addAll(handleLiTags(selector));
 
 
     return Container(
@@ -256,6 +279,9 @@ class TVTrope extends State<TVTropeWidget> {
       bodyWidgets.add(handleTwikiLinks(node.text, node.attributes["href"],
           italicize: false));
     }
+    else if (node.toString().contains("<html br")) {
+      bodyWidgets.add(TextSpan(text: "\n", style: theme.textTheme.body1));
+    }
     // Handle text nodes
     else {
       bodyWidgets
@@ -285,6 +311,7 @@ class TVTrope extends State<TVTropeWidget> {
 
   @override
   void initState() {
+    super.initState();
     _loadArticle().then((_) => {});
   }
 
@@ -312,7 +339,6 @@ class TVTrope extends State<TVTropeWidget> {
       await Future.delayed(Duration(seconds: 1));
     }
     List<Widget> data = await getPage();
-    print(folderVisibility);
 
     setState(() {
       _loading = false;
