@@ -107,10 +107,17 @@ show/hide the folders. We could use [GestureDetector](http://cogitas.net/impleme
 ```
 
 ### Spoilers
-Spoilers are a `span` tag with the class `spoiler`. On tap, these reveal the text beneath them. Flutter has a [GestureDetector](https://dev.to/rkowase/how-to-add-a-click-event-to-any-widget-of-flutter-2len)
-widget that will allow us to do this without a button.
+Spoilers are a `span` tag with the class `spoiler`. On tap, these reveal the text beneath them.
 ```
 <span class="spoiler" title="you can set spoilers visible by default on your profile">Minoru finally snaps</span>
+```
+
+
+### Notes
+The labels are located in the class `.notelabel`, and the element after them contain the content of the note. Notes are surrounded with parantheses in the app, rather than being expandable. Notes can also contain links and must be traversed for them.
+```
+<span class="notelabel" onclick="togglenote('note0f1vi');" style="cursor: pointer;"><sup>note&nbsp;</sup></span>
+<span id="note0f1vi" class="inlinefolder font-s" isnote="true" onclick="togglenote('note0f1vi');" style="display: inline; cursor: pointer;">Clockwise from top right: Reimu, Miko, Sanae, Youmu, Remilia, Byakuren. Center: Marisa. Not pictured: <a class="twikilink" href="/pmwiki/pmwiki.php/Main/LoadsAndLoadsOfCharacters" title="/pmwiki/pmwiki.php/Main/LoadsAndLoadsOfCharacters">At least a hundred characters</a></span>
 ```
 
 
