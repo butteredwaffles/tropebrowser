@@ -131,3 +131,24 @@ with `li`s that can be filtered through the same measure as all other `li`s.
 </ul>
 ```
 
+## Searches
+The URL for searches is `"https://tvtropes.org/pmwiki/elastic_search_result.php?q=${search_term}&page_type=all&search_type=article`.
+Search results are `a` tags with the class `.search-result`. The title selecter is `font-l`. If an image is present, there will be a div under the container `div` called `.img-wrapper` containing an `img` tag. The container `div` contains the preview text. The "More" button can be ignored, as I don't think that will be implemented.
+
+```
+<a href="/pmwiki/pmwiki.php/Main/CameraAbuse" class="search-result">
+  <p class="elastic-search-result-crumbs font-l mobile-font-m bold">
+    <i class='fa fa-chevron-right'></i>
+    Camera Abuse
+  </p>
+  <div>
+    <div class="img-wrapper">
+       <img class="elastic-search-result-image" src="http://static.tvtropes.org/pmwiki/pub/images/haruhi_camera_abuse.jpg">
+    </div>
+    ultimately need to be replaced. All the same, some filmmakers and showrunners will use <span class="highlight">camera</span>
+    shaking or other <span class="highlight">abuse</span>
+    intentionally, sometimes Played...
+    <span class="more-button">More <i class="fa fa-angle-double-right"></i></span>
+ </div>
+</a>
+```
