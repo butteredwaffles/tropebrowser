@@ -75,20 +75,26 @@ class TVTrope extends State<TVTropeWidget> {
     // TODO: Add support for twikilinks in caption.
     List<Widget> colchildren;
     double width = 300;
-    bool linkInCaption = caption?.querySelector("a") != null;
+    List<TextSpan> capNodes = [];
+
+    if (caption != null) {
+      for (var node in caption.nodes) {
+        if (node.hasChildNodes()) {
+          for (var n in node.nodes) {
+            capNodes.addAll(handleNodes(n, -1));
+          }
+        }
+        else {
+          capNodes.addAll(handleNodes(node, -1));
+        }
+      }
+    }
 
     if (image != null && caption != null) {
       colchildren = [
         Image.network(image.querySelector("img").attributes['src'],
             width: width),
-        RichText(
-            text: TextSpan(children: [
-          linkInCaption
-              ? handleTwikiLinks(
-                  caption.text, caption.querySelector("a").attributes["href"],
-                  style: theme.textTheme.caption)
-              : TextSpan(text: caption.text.replaceAll("note", ""), style: theme.textTheme.caption)
-        ]))
+        RichText(text: TextSpan(children: capNodes))
       ];
     } else if (image != null) {
       colchildren = [
@@ -97,14 +103,7 @@ class TVTrope extends State<TVTropeWidget> {
       ];
     } else if (caption != null) {
       colchildren = [
-        RichText(
-            text: TextSpan(children: [
-          linkInCaption
-              ? handleTwikiLinks(
-                  caption.text.replaceAll("note", ""), caption.querySelector("a").attributes["href"],
-                  style: theme.textTheme.caption)
-              : TextSpan(text: caption.text, style: theme.textTheme.caption)
-        ]))
+        RichText(text: TextSpan(children: capNodes))
       ];
     } else {
       return Container(width: 0, height: 0);
