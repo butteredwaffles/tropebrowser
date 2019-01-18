@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tropebrowser/scraper.dart';
+import 'package:tropebrowser/webview.dart';
 
 // Reference URL: https://tvtropes.org/pmwiki/pmwiki.php/Main/CameraAbuse
 const String RANDOM_URL = "https://tvtropes.org/pmwiki/randomitem.php?p=1";

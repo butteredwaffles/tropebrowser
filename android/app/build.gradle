@@ -33,7 +33,7 @@ android {
 
     defaultConfig {
         applicationId "com.qwaffles.tropebrowser"
-        minSdkVersion 16
+        minSdkVersion 17
         targetSdkVersion 27
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
