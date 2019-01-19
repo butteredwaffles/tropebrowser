@@ -14,7 +14,8 @@ for (i = 0; i < ads.length; i++) {
 
 var mainheader = document.querySelector("#main-header-bar");
 mainheader.parentNode.removeChild(mainheader)
-//mainheader.setAttribute("style", "display: none;");
 body.style.marginTop = "0";
 body.style.marginBottom = "0";
 body.style.height = "100%";
+
+console.log("done");

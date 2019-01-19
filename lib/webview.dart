@@ -4,6 +4,8 @@ import 'package:http/http.dart'; // Contains a client for making API calls
 import 'package:html/parser.dart' as parser;
 import 'package:html/dom.dart' as dom; // Contains DOM rel
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tropebrowser/preferences.dart';
 
 class TVTropeWidget extends StatefulWidget {
   TVTropeWidget({Key key, this.url}) : super(key: key);
@@ -14,10 +16,13 @@ class TVTropeWidget extends StatefulWidget {
 }
 
 class TVTrope extends State<TVTropeWidget> {
+  TropePreferences preferences;
+
   String title = "Loading...";
   InAppWebViewController controller;
   dom.Document document;
   Client client = Client();
+  // Until we can figure out how to implement smooth loading...
   bool _loading = false;
 
   Future onViewCreated(InAppWebViewController contr) async {
@@ -64,22 +69,43 @@ class TVTrope extends State<TVTropeWidget> {
     }
   }
 
+  Future handlePreferences() async {
+    if (preferences.darkmodeEnabled) {
+      await controller.injectScriptCode('document.querySelector("#user-prefs").classList.add("night-vision")');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    setPrefs();
+  }
+
+  Future setPrefs() async {
+    preferences = TropePreferences(await SharedPreferences.getInstance());
+    print(preferences);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(title)
       ),
-      body: _loading ? buildWidget() : InAppWebView(
+      body: InAppWebView(
           initialUrl: widget.url,
           onWebViewCreated: onViewCreated,
           onLoadStart: onUrlLoading,
           onLoadStop: (InAppWebViewController contr, String url) async {
             await contr.injectScriptCode(await rootBundle.loadString('assets/js/filter.js'));
-            setState(() {
-              _loading = false;
-            });
-          }
+            await handlePreferences();
+          },
+        onConsoleMessage: (InAppWebViewController contr, ConsoleMessage msg) {
+          setState(() {
+            print("ayy");
+            _loading = false;
+          });
+        },
       )
     );
   }
