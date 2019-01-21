@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TropePreferences {
-  SharedPreferences _prefs;
+  static SharedPreferences _prefs;
   static bool _testing = true;
   Map<String, dynamic> _defaults = {
     "darkmodeEnabled": _testing ? true : false
@@ -25,11 +25,11 @@ class TropePreferences {
     }
   }
 
-  bool get darkmodeEnabled {
+  static bool get darkmodeEnabled {
     return _prefs.getBool("darkmodeEnabled");
   }
 
-  set darkmodeEnabled(bool setting) {
+  static set darkmodeEnabled(bool setting) {
     _prefs.setBool("darkmodeEnabled", setting).then((b) {});
   }
 }

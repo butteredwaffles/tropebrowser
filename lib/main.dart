@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tropebrowser/preferences.dart';
 import 'package:tropebrowser/searchbar.dart';
 import 'package:tropebrowser/webview.dart';
 
 // Reference URL: https://tvtropes.org/pmwiki/pmwiki.php/Main/CameraAbuse
 const String RANDOM_URL = "https://tvtropes.org/pmwiki/randomitem.php?p=1";
 
-void main() => runApp(TropeBrowser());
+Future setPrefs() async {
+  TropePreferences(await SharedPreferences.getInstance());
+}
+
+void main() async {
+  await setPrefs();
+  runApp(TropeBrowser());
+}
 
 
 Map<String, Color> lightColors = {
@@ -16,8 +25,17 @@ Map<String, Color> lightColors = {
   "darkblue": Color(0xff1e1f26)
 };
 
+Map<String, Color> darkPalette = {
+  "darkgray": Color(0xff343d46),
+  "mediumgray": Color(0xff4f5b66),
+  "gray": Color(0xff65737e),
+  "lightgray": Color(0xffa7adba),
+  "whitegray": Color(0xffc0c5ce)
+};
+
 
 class TropeBrowser extends StatelessWidget {
+
   final ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
     primaryColor: lightColors["lightblue"],
@@ -33,12 +51,27 @@ class TropeBrowser extends StatelessWidget {
     )
   );
 
+  final ThemeData darkTheme = ThemeData(
+    brightness: Brightness.dark,
+    primaryColor: darkPalette["whitegray"],
+    accentColor: darkPalette["gray"],
+    backgroundColor: darkPalette["darkgray"],
+
+    fontFamily: 'Helvetica',
+      textTheme: TextTheme(
+          headline: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold, color: darkPalette["whitegray"]),
+          title: TextStyle(fontSize: 30.0, fontStyle: FontStyle.italic, color: darkPalette["whitegray"]),
+          body1: TextStyle(fontSize: 13.0, color: darkPalette["whitegray"]),
+          caption: TextStyle(fontSize: 14.0, color: darkPalette["whitegray"], fontStyle: FontStyle.italic)
+      )
+  );
+
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Trope Browser',
-      theme: lightTheme,
+      theme: TropePreferences.darkmodeEnabled ? darkTheme: lightTheme,
       home: MainPage(),
     );
   }

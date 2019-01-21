@@ -71,7 +71,7 @@ class TVTrope extends State<TVTropeWidget> {
   }
 
   Future handlePreferences() async {
-    if (preferences.darkmodeEnabled) {
+    if (TropePreferences.darkmodeEnabled) {
       await controller.injectScriptCode('document.querySelector("#user-prefs").classList.add("night-vision")');
     }
   }
@@ -84,7 +84,6 @@ class TVTrope extends State<TVTropeWidget> {
 
   Future setPrefs() async {
     preferences = TropePreferences(await SharedPreferences.getInstance());
-    print(preferences);
   }
 
   @override
