@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tropebrowser/searchbar.dart';
 import 'package:tropebrowser/webview.dart';
 
 // Reference URL: https://tvtropes.org/pmwiki/pmwiki.php/Main/CameraAbuse
@@ -52,24 +53,27 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<_MainPageState> myState = GlobalKey<_MainPageState>();
   String _url = "";
+  String title = "Trope Browser";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Trope Browser")
-      ),
+      appBar: TropeAppBar(title: title),
       body: Center(
         child: Form(
           key: _formKey,
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              TextFormField(
-                decoration: InputDecoration(
-                  hintText: "Enter in a trope URL"
-                ),
-                onSaved: (v) => _url = v,
+              Text("Enter in a trope URL or use the search bar above!", style: Theme.of(context).textTheme.caption),
+              Container(
+                width: MediaQuery.of(context).size.width / 1.2,
+                child: TextFormField(
+                  onSaved: (v) => _url = v,
+                )
               ),
               RaisedButton(
                 child: Text("Open Trope"),

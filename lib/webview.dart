@@ -6,6 +6,7 @@ import 'package:html/dom.dart' as dom; // Contains DOM rel
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tropebrowser/preferences.dart';
+import 'package:tropebrowser/searchbar.dart';
 
 class TVTropeWidget extends StatefulWidget {
   TVTropeWidget({Key key, this.url}) : super(key: key);
@@ -40,8 +41,8 @@ class TVTrope extends State<TVTropeWidget> {
     var document = parser.parse(response.body);
     setTitle(document
         .querySelector(".entry-title")
-        .text
-        .trim());
+        ?.text 
+        ?.trim() ?? document.querySelector('meta[property="og:title"]').attributes["content"].trim());
   }
 
   void setTitle(String str) {
@@ -89,9 +90,7 @@ class TVTrope extends State<TVTropeWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title)
-      ),
+      appBar: TropeAppBar(title: title),
       body: InAppWebView(
           initialUrl: widget.url,
           onWebViewCreated: onViewCreated,
@@ -109,18 +108,4 @@ class TVTrope extends State<TVTropeWidget> {
       )
     );
   }
-}
-
-
-class TVTropesBrowser extends InAppBrowser {
-  @override
-  void onBrowserCreated() async {
-    print("Created browser client.");
-  }
-
-  @override
-  void onLoadStart(String url) {
-    print("Loading url '$url'.");
-  }
-
 }
