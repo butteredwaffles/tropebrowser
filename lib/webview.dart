@@ -5,6 +5,7 @@ import 'package:html/parser.dart' as parser;
 import 'package:html/dom.dart' as dom; // Contains DOM rel
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tropebrowser/drawers.dart';
 import 'package:tropebrowser/preferences.dart';
 import 'package:tropebrowser/searchbar.dart';
 
@@ -90,6 +91,7 @@ class TVTrope extends State<TVTropeWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: TropeAppBar(title: title),
+      drawer: getLeftDrawer(context),
       body: InAppWebView(
           initialUrl: widget.url,
           onWebViewCreated: onViewCreated,
