@@ -6,7 +6,6 @@ import 'package:tropebrowser/searchbar.dart';
 import 'package:tropebrowser/webview.dart';
 
 // Reference URL: https://tvtropes.org/pmwiki/pmwiki.php/Main/CameraAbuse
-const String RANDOM_URL = "https://tvtropes.org/pmwiki/randomitem.php?p=1";
 
 Future setPrefs() async {
   TropePreferences(await SharedPreferences.getInstance());
