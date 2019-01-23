@@ -20,28 +20,11 @@ class _TropeAppBarState extends State<TropeAppBar>
   Icon actionIcon = new Icon(Icons.search);
   final key = new GlobalKey<ScaffoldState>();
   final TextEditingController _searchQuery = new TextEditingController();
-  bool _IsSearching = false;
   bool _titleIsTextField = false;
-
-  _TropeAppBarState() {
-    _searchQuery.addListener(() {
-      if (_searchQuery.text.isEmpty) {
-        setState(() {
-          _IsSearching = false;
-        });
-      }
-      else {
-        setState(() {
-          _IsSearching = true;
-        });
-      }
-    });
-  }
 
   @override
   void initState() {
     super.initState();
-    _IsSearching = false;
   }
 
   @override
@@ -71,7 +54,6 @@ class _TropeAppBarState extends State<TropeAppBar>
                       hintText: "Search TVTropes...",
                   ),
                 );
-                _handleSearchStart();
               }
               else {
                 _handleSearchEnd();
@@ -82,18 +64,11 @@ class _TropeAppBarState extends State<TropeAppBar>
     );
   }
 
-  void _handleSearchStart() {
-    setState(() {
-      _IsSearching = true;
-    });
-  }
-
   void _handleSearchEnd() {
     setState(() {
       _titleIsTextField = false;
       this.actionIcon = new Icon(Icons.search);
       this.appBarTitle = Text(widget.title);
-      _IsSearching = false;
       _searchQuery.clear();
     });
   }

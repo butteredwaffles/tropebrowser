@@ -105,7 +105,6 @@ class TVTrope extends State<TVTropeWidget> {
           },
         onConsoleMessage: (InAppWebViewController contr, ConsoleMessage msg) {
           setState(() {
-            print("ayy");
             _loading = false;
           });
         },
