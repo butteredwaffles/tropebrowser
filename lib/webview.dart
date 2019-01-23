@@ -75,6 +75,9 @@ class TVTrope extends State<TVTropeWidget> {
     if (TropePreferences.darkmodeEnabled) {
       await controller.injectScriptCode('document.querySelector("#user-prefs").classList.add("night-vision")');
     }
+    if (TropePreferences.showSpoilersEnabled) {
+      await controller.injectScriptCode('document.querySelector("#user-prefs").classList.add("show-spoilers")');
+    }
   }
 
   @override

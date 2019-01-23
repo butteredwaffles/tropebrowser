@@ -4,13 +4,12 @@ class TropePreferences {
   static SharedPreferences _prefs;
   static bool _testing = true;
   Map<String, dynamic> _defaults = {
-    "darkmodeEnabled": _testing ? true : false
+    "darkmodeEnabled": _testing ? true : false,
+    "showSpoilersEnabled": _testing ? true : false,
   };
 
   TropePreferences(SharedPreferences instance) {
     _prefs = instance;
-    print('got prefs');
-
     setDefaults();
   }
 
@@ -31,5 +30,13 @@ class TropePreferences {
 
   static set darkmodeEnabled(bool setting) {
     _prefs.setBool("darkmodeEnabled", setting).then((b) {});
+  }
+
+  static bool get showSpoilersEnabled {
+    return _prefs.getBool("showSpoilersEnabled");
+  }
+
+  static set showSpoilersEnabled(bool setting) {
+    _prefs.setBool("showSpoilersEnabled", setting).then((_) {});
   }
 }

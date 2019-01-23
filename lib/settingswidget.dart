@@ -22,11 +22,20 @@ class _SettingsState extends State<SettingsScreen> {
             title: Text("Toggle Dark Mode"),
               value: TropePreferences.darkmodeEnabled,
               onChanged: (val) {
-                TropePreferences.darkmodeEnabled = val;
                 setState(() {
-
+                  TropePreferences.darkmodeEnabled = val;
                 });
-              })
+              }),
+          CheckboxListTile(
+            subtitle: Text("Automatically show spoilers or hide them by default."),
+            title: Text("Toggle Spoilers"),
+            value: TropePreferences.showSpoilersEnabled,
+            onChanged: (val) {
+              setState(() {
+                TropePreferences.showSpoilersEnabled = val;
+              });
+            }
+          )
         ],
       )
     );
