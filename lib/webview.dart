@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
-import 'package:http/http.dart'; // Contains a client for making API calls
-import 'package:html/parser.dart' as parser;
-import 'package:html/dom.dart' as dom; // Contains DOM rel
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tropebrowser/drawers.dart';
+import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:tropebrowser/preferences.dart';
 import 'package:tropebrowser/searchbar.dart';
 
@@ -14,47 +9,61 @@ class TVTropeWidget extends StatefulWidget {
   final String url;
 
   @override
-  TVTrope createState() => TVTrope();
+  TropeState createState() => TropeState();
 }
 
-class TVTrope extends State<TVTropeWidget> {
-  TropePreferences preferences;
+class TropeState extends State<TVTropeWidget> {
+  final FlutterWebviewPlugin _fwp = new FlutterWebviewPlugin();
 
   String title = "Loading...";
-  InAppWebViewController controller;
-  dom.Document document;
-  Client client = Client();
-  // Until we can figure out how to implement smooth loading...
-  bool _loading = false;
 
-  Future onViewCreated(InAppWebViewController contr) async {
-    controller = contr;
-    await loadUrl();
+  Future handlePreferences() async {
+    if (TropePreferences.darkmodeEnabled) {
+      await _fwp.evalJavascript(
+          'document.querySelector("#user-prefs").classList.add("night-vision")');
+    }
+    if (TropePreferences.showSpoilersEnabled) {
+      await _fwp.evalJavascript(
+          'document.querySelector("#user-prefs").classList.add("show-spoilers")');
+    }
   }
 
-  Future onUrlLoading(InAppWebViewController contr, String url) async {
-    await loadUrl();
+  void setTitle(String newTitle) {
+    setState(() => title = newTitle);
   }
 
-  Future loadUrl() async {
-    Response response = await client.get(
-        (await controller?.getUrl()) ?? widget.url);
-    var document = parser.parse(response.body);
-    setTitle(document
-        .querySelector(".entry-title")
-        ?.text 
-        ?.trim() ?? document.querySelector('meta[property="og:title"]').attributes["content"].trim());
-  }
+  @override
+  void initState() {
+    super.initState();
+    _fwp.onStateChanged.listen((WebViewStateChanged state) async {
+      if (state.type == WebViewState.finishLoad) {
+        String tropeCleaner = await rootBundle.loadString('assets/js/filter.js');
+        String title = (await _fwp.evalJavascript('document.querySelector(".entry-title").textContent.trim()')) ??
+            (await _fwp.evalJavascript(
+                'document.querySelector("meta[property="og:title"]").attributes["content"].trim()'));
+        await handlePreferences().then((s) async {
+          await _fwp.evalJavascript(tropeCleaner).then((s) async {
+            await _fwp.show();
+          });
+        });
 
-  void setTitle(String str) {
-    setState(() {
-      title = str;
+        setTitle(title.replaceAll('"', '').replaceAll("\\n", ''));
+      }
+      if (state.type == WebViewState.startLoad) {
+        await _fwp.hide();
+      }
     });
   }
 
-  Widget buildWidget() {
-    if (_loading) {
-      return Stack(children: [
+  @override
+  Widget build(BuildContext context) {
+    return WebviewScaffold(
+      url: widget.url,
+      appBar: TropeAppBar(title: title),
+      withJavascript: true,
+      hidden: true,
+      scrollBar: false,
+      initialChild: Stack(children: [
         Opacity(
             opacity: 0.7,
             child: const ModalBarrier(dismissible: false, color: Colors.black)),
@@ -65,50 +74,7 @@ class TVTrope extends State<TVTropeWidget> {
                 ),
                 width: 75,
                 height: 75)),
-      ]);
-    } else {
-      return Container(width: 0, height: 0);
-    }
-  }
-
-  Future handlePreferences() async {
-    if (TropePreferences.darkmodeEnabled) {
-      await controller.injectScriptCode('document.querySelector("#user-prefs").classList.add("night-vision")');
-    }
-    if (TropePreferences.showSpoilersEnabled) {
-      await controller.injectScriptCode('document.querySelector("#user-prefs").classList.add("show-spoilers")');
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    setPrefs();
-  }
-
-  Future setPrefs() async {
-    preferences = TropePreferences(await SharedPreferences.getInstance());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: TropeAppBar(title: title),
-      drawer: getLeftDrawer(context),
-      body: InAppWebView(
-          initialUrl: widget.url,
-          onWebViewCreated: onViewCreated,
-          onLoadStart: onUrlLoading,
-          onLoadStop: (InAppWebViewController contr, String url) async {
-            await contr.injectScriptCode(await rootBundle.loadString('assets/js/filter.js'));
-            await handlePreferences();
-          },
-        onConsoleMessage: (InAppWebViewController contr, ConsoleMessage msg) {
-          setState(() {
-            _loading = false;
-          });
-        },
-      )
+      ]),
     );
   }
 }
