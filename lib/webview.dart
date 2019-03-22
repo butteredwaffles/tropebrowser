@@ -24,7 +24,7 @@ class TropeState extends State<TVTropeWidget> {
 
   String title = "Loading...";
 
-
+  /// Alters the Javascript of the page to match the user-specified settings.
   Future handlePreferences() async {
     if (TropePreferences.darkmodeEnabled) {
       await _controller.evaluateJavascript(
@@ -47,9 +47,9 @@ class TropeState extends State<TVTropeWidget> {
 
   @override
   Widget build(BuildContext context) {
-
     String _nextArticleLoad = "";
 
+    /// This is shown while the Webview is not ready. These two elements are removed once it is.
     Stack placeholder = Stack(children: [
       Opacity(
           opacity: .9,
@@ -101,7 +101,7 @@ class TropeState extends State<TVTropeWidget> {
         }
         await handlePreferences().then((s) async {
           await _controller.evaluateJavascript(tropeCleaner).then((s) async {
-            // It's going to flash if this isn't delayed, so just run with it
+            // Without this delay, it flashes before switching to the edited page.
             await Future.delayed(Duration(milliseconds: 300));
             setTitle(nTitle.replaceAll('"', '').replaceAll("\\n", ''));
             isSearchResult && title != "Loading..." ? null :

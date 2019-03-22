@@ -63,6 +63,7 @@ class _TropeAppBarState extends State<TropeAppBar>
     );
   }
 
+  /// Resets the AppBar to what it was pre-search.
   void _handleSearchEnd() {
     setState(() {
       _titleIsTextField = false;
@@ -72,10 +73,11 @@ class _TropeAppBarState extends State<TropeAppBar>
     });
   }
 
+  /// Opens a new TVTrope page with the query.
   void search(String searchTerm) {
     _handleSearchEnd();
     String searchString;
-    // Allow URLs to be directly dumped into the search bar.
+    // Allows URLs to be directly dumped into the search bar.
     if (searchTerm.startsWith("https://tvtropes.org/")) {
       searchString = searchTerm;
     }
