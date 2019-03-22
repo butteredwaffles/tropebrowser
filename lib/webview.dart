@@ -82,9 +82,19 @@ class TropeState extends State<TVTropeWidget> {
       },
       onPageFinished: (str) async {
         String tropeCleaner = await rootBundle.loadString('assets/js/filter.js');
-        String title = (await _controller.evaluateJavascript('document.querySelector(".entry-title").textContent.trim()')) ??
-            (await _controller.evaluateJavascript(
-                'document.querySelector("meta[property="og:title"]").attributes["content"].trim()'));
+
+        // If this is an article, it will be the first option. If it's search results, it will be the second.
+        String _possTitle1 = await _controller.evaluateJavascript('document.querySelector(".entry-title").textContent.trim()');
+        String _possTitle2 = await _controller.evaluateJavascript('document.querySelector("head > meta:nth-child(15)").attributes["content"].value');
+
+        String title;
+        if (_possTitle1 != "null") {
+          title = _possTitle1;
+        }
+        else {
+          print(_possTitle2);
+          title = _possTitle2;
+        }
         await handlePreferences().then((s) async {
           await _controller.evaluateJavascript(tropeCleaner).then((s) async {
             // It's going to flash if this isn't delayed, so just run with it
