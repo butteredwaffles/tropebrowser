@@ -11,7 +11,6 @@ class TropeAppBar extends StatefulWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => AppBar().preferredSize;
 
-
 }
 
 class _TropeAppBarState extends State<TropeAppBar>

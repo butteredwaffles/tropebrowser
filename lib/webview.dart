@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:tropebrowser/drawers.dart';
 import 'package:tropebrowser/preferences.dart';
+import 'package:tropebrowser/save_feature.dart';
 import 'package:tropebrowser/searchbar.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -19,6 +20,7 @@ class TropeState extends State<TVTropeWidget> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   WebViewController _controller;
   bool _fullyFinished = false;
+  ArticleManager _articleManager = ArticleManager();
 
   String title = "Loading...";
 
@@ -61,6 +63,7 @@ class TropeState extends State<TVTropeWidget> {
               width: 75,
               height: 75)),
     ]);
+    bool isSearchResult = _nextArticleLoad.contains("elastic_search_result");
 
     WebView view = WebView(
       initialUrl: widget.url,
@@ -68,17 +71,18 @@ class TropeState extends State<TVTropeWidget> {
       onWebViewCreated: (webViewController) {
         _controller = webViewController;
       },
-      onPageStarted: (url) {
+      onPageStarted: (url) async {
         setState(() {
           _fullyFinished = false;
           _nextArticleLoad = url;
         });
-        String snackText = _nextArticleLoad.contains("elastic_search_result") ? "Loading search results..." : "Loading...\n" + _nextArticleLoad;
+        String snackText = isSearchResult ? "Loading search results..." : "Loading...\n" + _nextArticleLoad;
         final SnackBar bar = new SnackBar(
           content: Text(snackText),
           duration: Duration(seconds: 1),
         );
         _scaffoldKey.currentState.showSnackBar(bar);
+
       },
       onPageFinished: (str) async {
         String tropeCleaner = await rootBundle.loadString('assets/js/filter.js');
@@ -87,22 +91,26 @@ class TropeState extends State<TVTropeWidget> {
         String _possTitle1 = await _controller.evaluateJavascript('document.querySelector(".entry-title").textContent.trim()');
         String _possTitle2 = await _controller.evaluateJavascript('document.querySelector("head > meta:nth-child(15)").attributes["content"].value');
 
-        String title;
+        String nTitle;
         if (_possTitle1 != "null") {
-          title = _possTitle1;
+          nTitle = _possTitle1;
         }
         else {
           print(_possTitle2);
-          title = _possTitle2;
+          nTitle = _possTitle2;
         }
         await handlePreferences().then((s) async {
           await _controller.evaluateJavascript(tropeCleaner).then((s) async {
             // It's going to flash if this isn't delayed, so just run with it
             await Future.delayed(Duration(milliseconds: 300));
-            setTitle(title.replaceAll('"', '').replaceAll("\\n", ''));
+            setTitle(nTitle.replaceAll('"', '').replaceAll("\\n", ''));
+            isSearchResult && title != "Loading..." ? null :
+                (await _articleManager.getArticles()).where((a) => a.title == title).length == 0
+                    ? await _articleManager.addArticle(ArticleInfo(title, str)) : null;
             setState(() => _fullyFinished = true);
           });
         });
+
       },
     );
 
@@ -115,6 +123,15 @@ class TropeState extends State<TVTropeWidget> {
       key: _scaffoldKey,
       appBar: TropeAppBar(title: title),
       drawer: getLeftDrawer(context),
+      endDrawer: FutureBuilder(
+        future: getRightDrawer(context, setState),
+        builder: (BuildContext ctx, AsyncSnapshot snapshot) {
+          if (snapshot.hasData) {
+            return snapshot.data;
+          }
+          else {return Container(width: 0.0, height: 0.0);}
+        },
+      ),
       body: placeholder
     );
   }

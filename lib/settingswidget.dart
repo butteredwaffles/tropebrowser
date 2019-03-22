@@ -15,6 +15,14 @@ class _SettingsState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text("Settings")),
       drawer: getLeftDrawer(context),
+      endDrawer: FutureBuilder(
+        future: getRightDrawer(context, setState),
+        builder: (BuildContext ctx, AsyncSnapshot snapshot) {
+          if (snapshot.hasData) {
+            return snapshot.data;
+          } else {return Container(width: 0.0, height: 0.0);}
+        },
+      ),
       body: ListView(
         children: <Widget>[
           CheckboxListTile(

@@ -41,6 +41,7 @@ class TropeBrowser extends StatelessWidget {
     primaryColor: lightColors["lightblue"],
     accentColor: lightColors["blue"],
     backgroundColor: lightColors["darkblue"],
+    dividerColor: Colors.black,
 
     fontFamily: 'Helvetica',
     textTheme: TextTheme(
@@ -56,6 +57,7 @@ class TropeBrowser extends StatelessWidget {
     primaryColor: darkPalette["whitegray"],
     accentColor: darkPalette["gray"],
     backgroundColor: darkPalette["darkgray"],
+    dividerColor: Colors.white,
 
     fontFamily: 'Helvetica',
       textTheme: TextTheme(
@@ -95,6 +97,14 @@ class _MainPageState extends State<MainPage> {
     return Scaffold(
       appBar: TropeAppBar(title: title),
       drawer: getLeftDrawer(context),
+      endDrawer: FutureBuilder(
+        future: getRightDrawer(context, setState),
+        builder: (BuildContext ctx, AsyncSnapshot snapshot) {
+          if (snapshot.hasData && snapshot.data != null) {
+            return snapshot.data;
+          } else {return Container(width: 0.0, height: 0.0);}
+        },
+        ),
       body: Center(
         child: Form(
           key: _formKey,
