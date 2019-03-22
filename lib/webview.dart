@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:tropebrowser/drawers.dart';
 import 'package:tropebrowser/preferences.dart';
 import 'package:tropebrowser/searchbar.dart';
@@ -15,7 +16,7 @@ class TVTropeWidget extends StatefulWidget {
 }
 
 class TropeState extends State<TVTropeWidget> {
-  // final FlutterWebviewPlugin _fwp = new FlutterWebviewPlugin();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   WebViewController _controller;
   bool _fullyFinished = false;
 
@@ -72,6 +73,12 @@ class TropeState extends State<TVTropeWidget> {
           _fullyFinished = false;
           _nextArticleLoad = url;
         });
+        String snackText = _nextArticleLoad.contains("elastic_search_result") ? "Loading search results..." : "Loading...\n" + _nextArticleLoad;
+        final SnackBar bar = new SnackBar(
+          content: Text(snackText),
+          duration: Duration(seconds: 1),
+        );
+        _scaffoldKey.currentState.showSnackBar(bar);
       },
       onPageFinished: (str) async {
         String tropeCleaner = await rootBundle.loadString('assets/js/filter.js');
@@ -80,6 +87,7 @@ class TropeState extends State<TVTropeWidget> {
                 'document.querySelector("meta[property="og:title"]").attributes["content"].trim()'));
         await handlePreferences().then((s) async {
           await _controller.evaluateJavascript(tropeCleaner).then((s) async {
+            // It's going to flash if this isn't delayed, so just run with it
             await Future.delayed(Duration(milliseconds: 300));
             setTitle(title.replaceAll('"', '').replaceAll("\\n", ''));
             setState(() => _fullyFinished = true);
@@ -94,6 +102,7 @@ class TropeState extends State<TVTropeWidget> {
     }
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: TropeAppBar(title: title),
       drawer: getLeftDrawer(context),
       body: placeholder
