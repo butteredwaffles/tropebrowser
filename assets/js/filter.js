@@ -20,6 +20,11 @@ for (i = 0; i < ads.length; i++) {
 var mainheader = document.querySelector("#main-header-bar");
 mainheader.parentNode.removeChild(mainheader)
 
+var createNewSubpage = document.querySelector(".create-subpage");
+createNewSubpage.parentNode.removeChild(createNewSubpage);
+
+var mobileActions = document.querySelector(".mobile-actionbar-toggle");
+mobileActions.parentNode.removeChild(mobileActions);
 
 body.style.marginTop = "0";
 body.style.marginBottom = "0";

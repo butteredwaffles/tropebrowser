@@ -100,11 +100,11 @@ class _MainPageState extends State<MainPage> {
       endDrawer: FutureBuilder(
         future: getRightDrawer(context, setState),
         builder: (BuildContext ctx, AsyncSnapshot snapshot) {
-          if (snapshot.hasData && snapshot.data != null) {
+          if (snapshot.hasData) {
             return snapshot.data;
           } else {return Container(width: 0.0, height: 0.0);}
         },
-        ),
+      ),
       body: Center(
         child: Form(
           key: _formKey,
