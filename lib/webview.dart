@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
+import 'package:tropebrowser/drawers.dart';
 import 'package:tropebrowser/preferences.dart';
 import 'package:tropebrowser/searchbar.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class TVTropeWidget extends StatefulWidget {
   TVTropeWidget({Key key, this.url}) : super(key: key);
@@ -13,17 +15,20 @@ class TVTropeWidget extends StatefulWidget {
 }
 
 class TropeState extends State<TVTropeWidget> {
-  final FlutterWebviewPlugin _fwp = new FlutterWebviewPlugin();
+  // final FlutterWebviewPlugin _fwp = new FlutterWebviewPlugin();
+  WebViewController _controller;
+  bool _fullyFinished = false;
 
   String title = "Loading...";
 
+
   Future handlePreferences() async {
     if (TropePreferences.darkmodeEnabled) {
-      await _fwp.evalJavascript(
+      await _controller.evaluateJavascript(
           'document.querySelector("#user-prefs").classList.add("night-vision")');
     }
     if (TropePreferences.showSpoilersEnabled) {
-      await _fwp.evalJavascript(
+      await _controller.evaluateJavascript(
           'document.querySelector("#user-prefs").classList.add("show-spoilers")');
     }
   }
@@ -35,46 +40,63 @@ class TropeState extends State<TVTropeWidget> {
   @override
   void initState() {
     super.initState();
-    _fwp.onStateChanged.listen((WebViewStateChanged state) async {
-      if (state.type == WebViewState.finishLoad) {
-        String tropeCleaner = await rootBundle.loadString('assets/js/filter.js');
-        String title = (await _fwp.evalJavascript('document.querySelector(".entry-title").textContent.trim()')) ??
-            (await _fwp.evalJavascript(
-                'document.querySelector("meta[property="og:title"]").attributes["content"].trim()'));
-        await handlePreferences().then((s) async {
-          await _fwp.evalJavascript(tropeCleaner).then((s) async {
-            await _fwp.show();
-          });
-        });
-
-        setTitle(title.replaceAll('"', '').replaceAll("\\n", ''));
-      }
-      if (state.type == WebViewState.startLoad) {
-        await _fwp.hide();
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return WebviewScaffold(
-      url: widget.url,
+
+    String _nextArticleLoad = "";
+
+    Stack placeholder = Stack(children: [
+      Opacity(
+          opacity: .9,
+          child: const ModalBarrier(dismissible: false, color: Colors.black)
+      ),
+      Center(
+          child: SizedBox(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+              width: 75,
+              height: 75)),
+    ]);
+
+    WebView view = WebView(
+      initialUrl: widget.url,
+      javascriptMode: JavascriptMode.unrestricted,
+      onWebViewCreated: (webViewController) {
+        _controller = webViewController;
+      },
+      onPageStarted: (url) {
+        setState(() {
+          _fullyFinished = false;
+          _nextArticleLoad = url;
+        });
+      },
+      onPageFinished: (str) async {
+        String tropeCleaner = await rootBundle.loadString('assets/js/filter.js');
+        String title = (await _controller.evaluateJavascript('document.querySelector(".entry-title").textContent.trim()')) ??
+            (await _controller.evaluateJavascript(
+                'document.querySelector("meta[property="og:title"]").attributes["content"].trim()'));
+        await handlePreferences().then((s) async {
+          await _controller.evaluateJavascript(tropeCleaner).then((s) async {
+            await Future.delayed(Duration(milliseconds: 300));
+            setTitle(title.replaceAll('"', '').replaceAll("\\n", ''));
+            setState(() => _fullyFinished = true);
+          });
+        });
+      },
+    );
+
+    placeholder.children.insert(0, view);
+    if (_fullyFinished) {
+      placeholder.children.removeRange(1, 3);
+    }
+
+    return Scaffold(
       appBar: TropeAppBar(title: title),
-      withJavascript: true,
-      hidden: true,
-      scrollBar: false,
-      initialChild: Stack(children: [
-        Opacity(
-            opacity: 0.7,
-            child: const ModalBarrier(dismissible: false, color: Colors.black)),
-        Center(
-            child: SizedBox(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-                width: 75,
-                height: 75)),
-      ]),
+      drawer: getLeftDrawer(context),
+      body: placeholder
     );
   }
 }
