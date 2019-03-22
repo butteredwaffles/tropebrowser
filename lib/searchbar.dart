@@ -75,7 +75,15 @@ class _TropeAppBarState extends State<TropeAppBar>
 
   void search(String searchTerm) {
     _handleSearchEnd();
-    Navigator.push(context, MaterialPageRoute(builder: (context) => TVTropeWidget(url: "https://tvtropes.org/pmwiki/elastic_search_result.php?q=$searchTerm&page_type=all&search_type=article")));
+    String searchString;
+    // Allow URLs to be directly dumped into the search bar.
+    if (searchTerm.startsWith("https://tvtropes.org/")) {
+      searchString = searchTerm;
+    }
+    else {
+      searchString = "https://tvtropes.org/pmwiki/elastic_search_result.php?q=$searchTerm&page_type=all&search_type=article";
+    }
+    Navigator.push(context, MaterialPageRoute(builder: (context) => TVTropeWidget(url: searchString)));
   }
 
 }
