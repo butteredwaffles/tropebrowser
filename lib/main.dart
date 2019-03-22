@@ -93,6 +93,13 @@ class _MainPageState extends State<MainPage> {
   String title = "Trope Browser";
 
   @override
+  void initState() {
+    super.initState();
+    // For some reason, the saved article drawer doesn't load the first time it's launched. So we have to call setState again here.
+    Future.delayed(Duration(seconds: 1)).then((t) => setState(() => {}));
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: TropeAppBar(title: title),
